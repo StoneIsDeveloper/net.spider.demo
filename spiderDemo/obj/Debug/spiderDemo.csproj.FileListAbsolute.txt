@@ -1,0 +1,11 @@
+E:\Projects\spiderDemo\spiderDemo\bin\Debug\spiderDemo.exe.config
+E:\Projects\spiderDemo\spiderDemo\bin\Debug\spiderDemo.exe
+E:\Projects\spiderDemo\spiderDemo\bin\Debug\spiderDemo.pdb
+E:\Projects\spiderDemo\spiderDemo\bin\Debug\Json.dll
+E:\Projects\spiderDemo\spiderDemo\bin\Debug\Newtonsoft.Json.dll
+E:\Projects\spiderDemo\spiderDemo\bin\Debug\Json.pdb
+E:\Projects\spiderDemo\spiderDemo\bin\Debug\Newtonsoft.Json.xml
+E:\Projects\spiderDemo\spiderDemo\obj\Debug\spiderDemo.csprojResolveAssemblyReference.cache
+E:\Projects\spiderDemo\spiderDemo\obj\Debug\spiderDemo.csproj.CoreCompileInputs.cache
+E:\Projects\spiderDemo\spiderDemo\obj\Debug\spiderDemo.exe
+E:\Projects\spiderDemo\spiderDemo\obj\Debug\spiderDemo.pdb
