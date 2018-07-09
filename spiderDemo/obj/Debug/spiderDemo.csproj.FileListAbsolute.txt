@@ -9,3 +9,15 @@ E:\Projects\spiderDemo\spiderDemo\obj\Debug\spiderDemo.csprojResolveAssemblyRefe
 E:\Projects\spiderDemo\spiderDemo\obj\Debug\spiderDemo.csproj.CoreCompileInputs.cache
 E:\Projects\spiderDemo\spiderDemo\obj\Debug\spiderDemo.exe
 E:\Projects\spiderDemo\spiderDemo\obj\Debug\spiderDemo.pdb
+D:\SVN_li\net.spider.demo\spiderDemo\bin\Debug\spiderDemo.exe.config
+D:\SVN_li\net.spider.demo\spiderDemo\bin\Debug\spiderDemo.exe
+D:\SVN_li\net.spider.demo\spiderDemo\bin\Debug\spiderDemo.pdb
+D:\SVN_li\net.spider.demo\spiderDemo\bin\Debug\Json.dll
+D:\SVN_li\net.spider.demo\spiderDemo\bin\Debug\Newtonsoft.Json.dll
+D:\SVN_li\net.spider.demo\spiderDemo\bin\Debug\Json.pdb
+D:\SVN_li\net.spider.demo\spiderDemo\bin\Debug\Newtonsoft.Json.xml
+D:\SVN_li\net.spider.demo\spiderDemo\obj\Debug\spiderDemo.csprojResolveAssemblyReference.cache
+D:\SVN_li\net.spider.demo\spiderDemo\obj\Debug\spiderDemo.csproj.CoreCompileInputs.cache
+D:\SVN_li\net.spider.demo\spiderDemo\obj\Debug\spiderDemo.csproj.CopyComplete
+D:\SVN_li\net.spider.demo\spiderDemo\obj\Debug\spiderDemo.exe
+D:\SVN_li\net.spider.demo\spiderDemo\obj\Debug\spiderDemo.pdb
