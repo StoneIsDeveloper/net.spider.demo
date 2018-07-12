@@ -21,3 +21,6 @@ D:\SVN_li\net.spider.demo\spiderDemo\obj\Debug\spiderDemo.csproj.CoreCompileInpu
 D:\SVN_li\net.spider.demo\spiderDemo\obj\Debug\spiderDemo.csproj.CopyComplete
 D:\SVN_li\net.spider.demo\spiderDemo\obj\Debug\spiderDemo.exe
 D:\SVN_li\net.spider.demo\spiderDemo\obj\Debug\spiderDemo.pdb
+D:\SVN_li\net.spider.demo\spiderDemo\bin\Debug\HtmlAgilityPack.dll
+D:\SVN_li\net.spider.demo\spiderDemo\bin\Debug\HtmlAgilityPack.pdb
+D:\SVN_li\net.spider.demo\spiderDemo\bin\Debug\HtmlAgilityPack.xml

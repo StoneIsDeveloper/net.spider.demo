@@ -22,21 +22,26 @@ namespace spiderDemo
 
             PullData spider = new PullData();
 
-            // Util.DownloadPdf();
-
             // 债券新闻
             //spider.GetBondsNewsData("诉讼");
 
             // 上交所
-            //spider.GetNewsFromShangExchange("上海");
+            // spider.GetNewsFromShangExchange("南京");
 
             // 深交所
-            spider.GetResultByPost();
-            // spider.GetShenReportDetailInfo();
+            // spider.GetSZNewsByPost("监管关注");
 
             // 证监会
-           // spider.GetSecuritiesNewsByPost();
+            spider.GetSecuritiesNewsByPost("中心");
+            // spider.ConvertToModelList("");
+           // spider.GetSecuritiesDetail();
 
+            // 失信人信息查询
+            //spider.GetCourtPersonInfo();
+
+            // 百度新闻
+
+            //spider.TestRequest();
 
             Console.ReadKey();
 

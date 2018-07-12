@@ -16,19 +16,30 @@ namespace spiderDemo.ViewModel
     public class ShenReportItem
     {
         public string id { get; set; }
+
+        public string doctitle { get; set; }
+
         public string doccontent { get; set; }
+
         public string docpuburl { get; set; }
+
         public string docpubjsonurl { get; set; }
+
         public string docpubtime { get; set; }
+
         public string doctype { get; set; }
+
         public string chnlcode { get; set; }
+
         public string index { get; set; }
     }
 
     public class ShenReportModel
     {
         public string code { get; set; }
+
         public string message { get; set; }
+
         public ShenReportDetailModel data { get; set; }
     }
 
