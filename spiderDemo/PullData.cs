@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using spiderDemo.Helper;
 
 namespace spiderDemo
 {
@@ -46,9 +47,9 @@ namespace spiderDemo
             client.DefaultRequestHeaders.Add("user-agent", "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0)");
 
             var count = 0;
-            while (count < 300)
+            while (count < 501)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
                 var task = client.GetAsync(client.BaseAddress);
                 task.Result.EnsureSuccessStatusCode();
                 HttpResponseMessage response = task.Result;
@@ -122,6 +123,47 @@ namespace spiderDemo
         #endregion
 
         #region 上交所公告 pdf
+
+        public async void GetNewsFromShangExchangeTest(string keyword)
+        {
+            var encodeKey = Util.EncodeString(keyword);
+
+            // query string parameters
+            var search = "qwjs";
+            var jsonCallBack = "jQuery111202517423818574538_1531118387371";
+            var page = "1";
+            var orderby = "-CRELEASETIME";
+            var perpage = "10";
+            var last = "1531118387379";
+
+            var url = "http://query.sse.com.cn/search/getSearchResult.do?search=qwjs&jsonCallBack=" + jsonCallBack + "&page=" + page + "&searchword=T_L+CTITLE+T_D+E_KEYWORDS+T_JT_E+T_L" + encodeKey + "T_RT_R&orderby=-CRELEASETIME&perpage=" + perpage + "&_=1531119909975";
+
+            HttpClient httpClient = new HttpClient();
+
+            httpClient.DefaultRequestHeaders.Add("Cookie", "yfx_c_g_u_id_10000042=_ck18070722304716339381556754279; VISITED_MENU=%5B%228307%22%5D; yfx_f_l_v_t_10000042=f_t_1530973847600__r_t_1531066298213__v_t_1531066298213__r_c_1; seecookie=%u4E0A%u6D77%2C%u4E2D%u4FE1");
+            httpClient.DefaultRequestHeaders.Add("Host", "query.sse.com.cn");
+            httpClient.DefaultRequestHeaders.Referrer = new Uri("http://www.sse.com.cn/home/search/?webswd=" + encodeKey);
+            httpClient.DefaultRequestHeaders.Add("UserAgent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36");
+
+            Console.WriteLine("begin send request:..." + DateTime.Now);
+
+            // 创建一个异步get请求，当请求返回时继续处理   
+
+            var count = 0;
+            while (count < 500)
+            {
+                HttpResponseMessage response = await httpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                string resultStr = await response.Content.ReadAsStringAsync();
+                File.WriteAllText(@"D:\上交所测试\上交所文件-" + count + ".txt", resultStr, Encoding.UTF8);
+                Console.WriteLine("save file finiashed: 上交所文件-" + count);
+                Thread.Sleep(100);
+                count++;
+            }
+
+        }
+
         public async void GetNewsFromShangExchange(string keyword)
         {
             var encodeKey = Util.EncodeString(keyword);
@@ -148,6 +190,7 @@ namespace spiderDemo
             Console.WriteLine("begin send request:..." + DateTime.Now);
 
             // 创建一个异步get请求，当请求返回时继续处理   
+
             HttpResponseMessage response = await httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
             string resultStr = await response.Content.ReadAsStringAsync();
@@ -156,8 +199,10 @@ namespace spiderDemo
             var lastN = resultStr.LastIndexOf(")");
 
             resultStr = resultStr.Substring(start, lastN - start);
-
-            File.WriteAllText(@"D:\上交所测试\上交所文件-" + keyword + ".txt", resultStr, Encoding.UTF8);
+            resultStr = resultStr.Replace(",", ",\r\n\r\n");
+            resultStr = resultStr.Replace("<font color=#FF0000>", "");
+            resultStr = resultStr.Replace("<\\/font>", "");
+            File.WriteAllText(@"D:\上交所测试\上交所文件查询结果" + ".txt", resultStr, Encoding.UTF8);
 
             var reports = JsonConvert.DeserializeObject<ShangReports>(resultStr);
             var host = "http://www.sse.com.cn/";
@@ -185,13 +230,68 @@ namespace spiderDemo
 
         #region 深交所 html,pdf
 
+        public async void GetSZNewsByPostTest(string keyword)
+        {
+            HttpClient httpClient = new HttpClient();
+            var encodeKey = Util.EncodeString(keyword);
+            var range = "title";  // 标题
+                                  // range = "body";  // 正文
+            range = "content";  // 标题+正文
+            var time = "1";
+            var orderby = "score";
+            var currentPage = "1";
+            var pageSize = "20";
+            var random = "0.3778834245960281";
+            var url = "http://www.szse.cn/api/search/content?random=" + random;
+
+            // 设置请求头信息  
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/json, text/javascript, */*; q=0.01");
+            httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
+            httpClient.DefaultRequestHeaders.Add("KeepAlive", "false");
+            // httpClient.DefaultRequestHeaders.Add("Content-Length", "85");
+            // httpClient.DefaultRequestHeaders.Add("Content-Type", "application/x-www-form-urlencoded");
+            httpClient.DefaultRequestHeaders.Add("Origin", "http://www.szse.cn");
+            httpClient.DefaultRequestHeaders.Add("Host", "www.szse.cn");
+            httpClient.DefaultRequestHeaders.Add("Pragma", "no-cache");
+
+            httpClient.DefaultRequestHeaders.Add("Referer", "http://www.szse.cn/application/search/index.html?keyword=" + encodeKey);
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36");
+            httpClient.DefaultRequestHeaders.Add("X-Request-Type", "ajax");
+            httpClient.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
+
+            List<ShenReportItem> shenReportItems = new List<ShenReportItem>();
+            // html 格式新闻
+            List<ShenReportModel> shenModeltItems = new List<ShenReportModel>();
+
+            var count = 1;
+            while (count < 501)
+            {
+                // 构造POST参数  
+                HttpContent postContent = new FormUrlEncodedContent(new Dictionary<string, string>()
+                {
+                   {"keyword", keyword},
+                   {"range", range},
+                   {"time", time},
+                   {"orderby",orderby},
+                   {"currentPage", currentPage},
+                    {"pageSize", pageSize},
+                });
+
+                HttpResponseMessage response = await httpClient.PostAsync(url, postContent);
+                response.EnsureSuccessStatusCode();
+                Console.WriteLine("深交所查询相应成功成功：" + count);
+                Thread.Sleep(1000);
+                count++;
+            }
+        }
+
         public void GetSZNewsByPost(string keyword)
         {
             HttpClient httpClient = new HttpClient();
             // var keyword = "加强";
             var range = "title";  // 标题
                                   // range = "body";  // 正文
-            range = "content";  // 标题+正文
+           // range = "content";  // 标题+正文
             var time = "1";
             var orderby = "score";
             var currentPage = "1";
@@ -244,8 +344,11 @@ namespace spiderDemo
                        (readTask) =>
                        {
                            var content = readTask.Result;
-                           content = content.Replace("},", Environment.NewLine);
-                           File.WriteAllText(@"D:\深交所查询结果集合.txt", content, Encoding.UTF8);
+                           content = content.Replace(",", ",\r\n\r\n");
+                           content = content.Replace("<span class=\\\"keyword\\\">", "");
+                           content = content.Replace("</span>", "");
+                           File.WriteAllText(@"D:\深交所测试\深交所查询结果集合.txt", content, Encoding.UTF8);
+                          
                            var model = JsonConvert.DeserializeObject<ShenReportList>(readTask.Result);
                            var size = model.totalSize;
                            shenReportItems = model.data;
@@ -273,11 +376,11 @@ namespace spiderDemo
 
                            var encodeStr = JsonConvert.SerializeObject(shenReportItems);
                            encodeStr = encodeStr.Replace("},", Environment.NewLine);
-                           File.WriteAllText(@"D:\深交所查询格式化.txt", encodeStr, Encoding.UTF8);
+                          // File.WriteAllText(@"D:\深交所查询格式化.txt", encodeStr, Encoding.UTF8);
 
                            var htmlStr = JsonConvert.SerializeObject(shenModeltItems);
                            htmlStr = htmlStr.Replace("},", Environment.NewLine);
-                           File.WriteAllText(@"D:\深交所htm.txt", htmlStr, Encoding.UTF8);
+                          // File.WriteAllText(@"D:\深交所htm.txt", htmlStr, Encoding.UTF8);
                        });
 
                    Console.WriteLine("响应是否成功：" + response.IsSuccessStatusCode);
@@ -332,6 +435,142 @@ namespace spiderDemo
 
         #region 证监会 
 
+        public void GetSecuritiesNewsByPostTest(string schword)
+        {
+            var baseAddress = new Uri("http://www.csrc.gov.cn/pub/newsite/");
+
+            var cookieContainer = new CookieContainer();
+            cookieContainer.Add(new Cookie("JSESSIONID", "5935DAA8FFDC9B282326FEE9B7A0C600", "/", "www.csrc.gov.cn"));
+            var handler = new HttpClientHandler()
+            {
+                CookieContainer = cookieContainer
+            };
+
+            
+            string htmlCode = string.Empty;
+            var count = 1;
+            var success = 0;
+            var failed = 0;
+            while (count < 501)
+            {
+                HttpClient httpClient = new HttpClient(handler)
+                {
+                    BaseAddress = baseAddress
+                };
+                var uriPath = "http://www.csrc.gov.cn/pub/newsite/";
+                var responseM = httpClient.GetAsync(uriPath).Result;
+
+                var uri = "http://www.csrc.gov.cn/wcm/websearch/zjh_simp_list.jsp";
+
+                #region 发送post，获取reponse
+                // var schword = "中信";
+                // 设置请求头信息  
+                var req = HttpWebRequest.Create(uri) as HttpWebRequest;
+                SetHeaderValue(req.Headers, "Connection", "Keep-Alive");
+                SetHeaderValue(req.Headers, "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+                SetHeaderValue(req.Headers, "Accept-Encoding", "gzip, deflate");
+                SetHeaderValue(req.Headers, "Connection", "keep-alive");
+                SetHeaderValue(req.Headers, "Origin", "http://www.csrc.gov.cn");
+                SetHeaderValue(req.Headers, "Referer", "http://www.csrc.gov.cn/pub/newsite/");
+                SetHeaderValue(req.Headers, "User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36");
+                SetHeaderValue(req.Headers, "Cache-Control", "no-cache");
+                SetHeaderValue(req.Headers, "Accept-Language", "zh-CN,zh;q=0.9");
+                SetHeaderValue(req.Headers, "Upgrade-Insecure-Requests", "1");
+
+                req.ProtocolVersion = HttpVersion.Version10;
+                req.Method = "POST";
+                req.ContentType = "application/x-www-form-urlencoded";
+
+                IDictionary<string, string> parameters = new Dictionary<string, string>();
+                var ordianryQuery = true;
+                if (ordianryQuery) //普通查询
+                {
+                    parameters.Add("schword", schword);
+                    parameters.Add("searchword", "pub/newsite/");
+                    parameters.Add("channelid", "3858");
+                    parameters.Add("whereId", "");
+                }
+                else  // 高级查询
+                {
+                    parameters.Add("channelid", "1");
+                    parameters.Add("filetypeid", "pdf");
+                    parameters.Add("templet", "demo_result.jsp");
+                    parameters.Add("searchdate", "");
+                    parameters.Add("searchword", "(DOCTITLE=证监会 OR DOCCONTENT=证监会 OR APPFILE=证监会) and (fileext=pdf)");
+                    parameters.Add("searchword1", "证监会");
+                    parameters.Add("searchword2", "");
+                    parameters.Add("searchword3", "");
+                    parameters.Add("searchword4", "");
+                    parameters.Add("filetype", "pdf");
+                    parameters.Add("channel", "1");
+                    parameters.Add("idStartDate", "");
+                    parameters.Add("idEndDate", "");
+                    parameters.Add("prepage", "20");
+                    parameters.Add("getcontent", "on");
+                    parameters.Add("submit", "开始检索");
+                }
+
+                StringBuilder buffer = new StringBuilder();
+                int i = 0;
+                foreach (string key in parameters.Keys)
+                {
+                    if (i > 0)
+                    {
+                        buffer.AppendFormat("&{0}={1}", key, parameters[key]);
+                    }
+                    else
+                    {
+                        buffer.AppendFormat("{0}={1}", key, parameters[key]);
+                    }
+                    i++;
+                }
+                byte[] data = Encoding.UTF8.GetBytes(buffer.ToString());
+                req.ContentLength = data.Length;
+
+                Stream requestStream = req.GetRequestStream();
+                requestStream.Write(data, 0, data.Length);
+                requestStream.Close();
+
+                try
+                {
+                    using (Stream streamReceive = req.GetResponse().GetResponseStream())
+                    {
+                        using (var zipStream = new System.IO.Compression.GZipStream(streamReceive, System.IO.Compression.CompressionMode.Decompress))
+                        {
+
+                            using (StreamReader sr = new StreamReader(zipStream, Encoding.UTF8))
+                            {
+                                htmlCode = sr.ReadToEnd();
+                            }
+                        }
+                    }
+                    var index = htmlCode.IndexOf("in_main");
+
+                    if (index > -1)
+                    {
+                        htmlCode = htmlCode.Insert(index + 8, " id=\"newsList\"");
+                    }
+                    htmlCode = htmlCode.Replace("<font color=red>", "");
+                    htmlCode = htmlCode.Replace("</font>", "");
+
+                    //  var resultList = ConvertToModelList(htmlCode);
+                    Console.WriteLine("success:" + count);
+                    success++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("fail:" + count);
+                    failed++;
+                    //Console.WriteLine("eerror:>> req.GetResponse()  failed.............");
+                    //Console.WriteLine(ex.Message);
+                }
+                Thread.Sleep(500);
+                count++;
+            }
+            Console.WriteLine("total success:" + success);
+            Console.WriteLine("total failed:" + failed);
+        }
+
         public void GetSecuritiesNewsByPost(string schword)
         {
             var baseAddress = new Uri("http://www.csrc.gov.cn/pub/newsite/");
@@ -356,16 +595,6 @@ namespace spiderDemo
             #region 发送post，获取reponse
             // var schword = "中信";
             // 设置请求头信息  
-            httpClient.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
-            httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
-            httpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
-            httpClient.DefaultRequestHeaders.Add("Origin", "http://www.csrc.gov.cn");
-            httpClient.DefaultRequestHeaders.Add("Referer", "http://www.csrc.gov.cn/pub/newsite/");
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36");
-            httpClient.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
-            httpClient.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9");
-            httpClient.DefaultRequestHeaders.Add("Upgrade-Insecure-Requests", "1");
-
             var req = HttpWebRequest.Create(uri) as HttpWebRequest;
             SetHeaderValue(req.Headers, "Connection", "Keep-Alive");
             SetHeaderValue(req.Headers, "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
@@ -455,9 +684,11 @@ namespace spiderDemo
                 htmlCode = htmlCode.Replace("</font>", "");
 
                 var resultList = ConvertToModelList(htmlCode);
+                var jsonResult = JsonConvert.SerializeObject(resultList);
+                
                 Console.WriteLine("save as txt finished.");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine("eerror:>> req.GetResponse()  failed.............");
                 Console.WriteLine(ex.Message);
@@ -465,23 +696,10 @@ namespace spiderDemo
             #endregion          
         }
 
-        public List<SecuritiesResultEntry> ConvertToModelList(string path)
+        public List<SecuritiesResultEntry> ConvertToModelList(string content)
         {
             List<SecuritiesResultEntry> list = new List<SecuritiesResultEntry>();
-            var content = "";
             var host = @"http://www.csrc.gov.cn";
-            if (string.IsNullOrEmpty(path))
-            {
-                path = @"D:\证监会查询结果.txt";
-                FileStream file = File.OpenRead(path);
-                StreamReader strRead = new StreamReader(path);
-                content = strRead.ReadToEnd();
-            }
-            else
-            {
-                content = path;
-            }
-
             HtmlDocument doc = new HtmlDocument();
             // doc.Load(path);
             doc.LoadHtml(content);
@@ -534,28 +752,29 @@ namespace spiderDemo
                     list.Add(entry);
                 }
             });
-          
+
             List<FileViewModel> fileList = new List<FileViewModel>();
             list.ForEach(item =>
             {
-                var files = GetSecuritiesDetail( ref item);
+                var files = GetSecuritiesDetail(ref item);
                 fileList.AddRange(files);
             });
 
             var countFile = fileList.Count;
-            Console.WriteLine("countFile: "+ countFile);
-            //下载 pdf
+            Console.WriteLine("countFile: " + countFile);
+            //下载 附件
             HttpClient httpClient = new HttpClient();
             fileList.ForEach(o =>
             {
                 var fileName = o.FileName;
+                fileName = o.FileCode;
                 var filePath = @"D:\证监会测试\" + fileName;
-              //  Util.DownloadPdf(httpClient, o.Url, filePath);
+                  Util.DownloadPdf(httpClient, o.Url, filePath);
             });
 
             var encodeStr = JsonConvert.SerializeObject(list);
-            encodeStr = encodeStr.Replace(",", "\r\n\r\n");
-            File.WriteAllText(@"D:\证监会查询结果-encode.txt", encodeStr, Encoding.UTF8);
+            encodeStr = encodeStr.Replace(",", ",\r\n\r\n");
+            File.WriteAllText(@"D:\证监会测试\证监会查询结果-encode.txt", encodeStr, Encoding.UTF8);
             Console.WriteLine("save as 证监会查询结果-encode.txt finished. ");
 
             var report = list.FirstOrDefault();
@@ -587,7 +806,7 @@ namespace spiderDemo
             var responseSuccess = true;
             var msgContent = "";
             if (isWebNews)
-            {         
+            {
                 var uri = new Uri(sourceUri);
                 var task = httpClient.GetAsync(uri);
                 try
@@ -614,7 +833,7 @@ namespace spiderDemo
                     HtmlDocument doc = new HtmlDocument();
                     doc.LoadHtml(htmlCode);
                     var node = doc.GetElementbyId("in_main");
-                 
+
                     if (node != null)
                     {
                         var content = node.ChildNodes.Where(o => o.Name == "div").FirstOrDefault();
@@ -624,7 +843,7 @@ namespace spiderDemo
                             msgContent = content.InnerHtml;
                             var indexStart = msgContent.IndexOf("<script");
                             var indexEnd = msgContent.LastIndexOf("</script>");
-                            if(indexStart>0 && indexEnd>0 && indexStart < indexEnd)
+                            if (indexStart > 0 && indexEnd > 0 && indexStart < indexEnd)
                             {
                                 msgContent = msgContent.Remove(indexStart, indexEnd - indexStart);
                             }
@@ -657,12 +876,12 @@ namespace spiderDemo
                                 pdfChildren.ForEach(item =>
                                 {
                                     var fileName = item.InnerHtml;
-                                    var fileUri = item.GetAttributeValue("href", "");                                 
+                                    var fileUri = item.GetAttributeValue("href", "");
                                     var firstDot = fileUri.IndexOf(".");
                                     var lastDot = fileUri.LastIndexOf(".");
                                     var typeName = fileUri.Substring(lastDot);
                                     var fileType = FileType.pdf;
-                                    var parseSucceed = Enum.TryParse<FileType>(typeName, out fileType);                                  
+                                    var parseSucceed = Enum.TryParse<FileType>(typeName, out fileType);
                                     var fileId = fileUri.Substring(firstDot + 1);
                                     fileUri = partUri + fileUri.Substring(1);
                                     FileViewModel file = new FileViewModel
@@ -739,7 +958,7 @@ namespace spiderDemo
                     var mainContainer = doc.GetElementbyId("mainContainer");
                     if (mainContainer != null)
                     {
-                        var mainDivs = mainContainer.ChildNodes.Where(o => o.Name == "div").ToList();               
+                        var mainDivs = mainContainer.ChildNodes.Where(o => o.Name == "div").ToList();
                         var pdfContent = mainDivs[2];
                         var pdfNodes = pdfContent.ChildNodes.Where(o => o.Name == "a").ToList();
                         pdfNodes.ForEach(item =>
@@ -763,7 +982,7 @@ namespace spiderDemo
                             };
                             fileList.Add(file);
                             fileCont++;
-                        });  
+                        });
                     }
                     #endregion
 
@@ -802,7 +1021,7 @@ namespace spiderDemo
                     detailModel.SourceWebsite = "证监会";
                 }
             }
-          
+
             return fileList;
 
         }
@@ -810,16 +1029,201 @@ namespace spiderDemo
         #endregion
 
         #region  中国执行信息公开网（失信人信息查询） /验证码
-        public void GetCourtPersonInfo()
+        public async void ParseImgToCode(bool needNext)
         {
-            var uri = "http://zxgk.court.gov.cn/shixin/new_index.html";
+            var imgUri = "http://zxgk.court.gov.cn/shixin/captcha.do?captchaId=b38d98e1131749fd88f4071c1fc05262&random=0.7466152744111231";
+
+            // 创建一个异步GET请求，当请求返回时继续处理  
             HttpClient httpClient = new HttpClient();
-            var task = httpClient.GetAsync(uri);
-            task.Result.EnsureSuccessStatusCode();
-            var result = task.Result.Content.ReadAsStringAsync();
-            var txtMsg = result.Result;
-            File.WriteAllText(@"D:\全国法院查询结果.txt", txtMsg, Encoding.UTF8);
-            Console.WriteLine(@"save file finished: D:\全国法院查询结果.txt");
+            HttpResponseMessage responseN = await httpClient.GetAsync(imgUri);
+            var sessionCookie = "";
+            //Set-Cookie: JSESSIONID=28AE684C0BD6C6452119617792F624FF; Path=/shixin; HttpOnly
+
+            // 确认响应成功，否则抛出异常  
+            responseN.EnsureSuccessStatusCode();
+            // 获取 sessionCookie
+            var headers = responseN.Headers.Where(o => o.Key == "Set-Cookie").ToList();
+            headers.ForEach(o =>
+            {
+                Console.WriteLine("response cookies:");
+                var cookie = o.Value.Where(val => val.Contains("JSESSIONID")).FirstOrDefault();
+                if (cookie != null)
+                {
+                    sessionCookie = cookie;
+                    var startIndx = sessionCookie.IndexOf("=") + 1;
+                    var endIndx = sessionCookie.IndexOf(";");
+                    if (startIndx < endIndx)
+                    {
+                        sessionCookie = sessionCookie.Substring(startIndx, endIndx - startIndx);
+                    }
+                }
+                Console.WriteLine("sessionCookie:" + sessionCookie);
+            });
+
+            //下载图片
+            // 异步读取响应为字符串  
+            Console.WriteLine("sessionCookie：" + sessionCookie);
+            if (string.IsNullOrEmpty(sessionCookie))
+            {
+                sessionCookie = Guid.NewGuid().ToString();
+            }
+            var streamN = responseN.Content.ReadAsStreamAsync();
+            await responseN.Content.DownloadAsFileAsync(@"C:\Users\slli\Desktop\imgCodes\codeImg" + sessionCookie + ".png", true);
+            Console.WriteLine("codeImg 下载完成！");
+            // GetCourtPersonInfo(sessionCookie, code);
+
+            if (needNext)
+            {
+                Console.WriteLine("输入验证码:");
+                var code = Console.ReadLine();
+                Console.WriteLine("已输入:" + code);
+                GetPersonInHttpClient(sessionCookie, code);
+            }
+        }
+
+        public async void GetPersonInHttpClient(string sessionId, string code)
+        {
+            var personName = "王猛";
+            var captchaId = "057d5f5759b844f1baa2673222f26053";
+            var queryUri = "http://zxgk.court.gov.cn/shixin/findDis";
+            // cookies
+            var cookieContainer = new CookieContainer();
+            cookieContainer.Add(new Cookie("JSESSIONID", sessionId, "/shixin", "zxgk.court.gov.cn"));
+            cookieContainer.Add(new Cookie("_gscbrs_15322769", "1", "/", "zxgk.court.gov.cn"));
+            cookieContainer.Add(new Cookie("_gscs_15322769", "31443025o0yojy18|pv:4", "/", "zxgk.court.gov.cn"));
+            cookieContainer.Add(new Cookie("_gscu_15322769", "30843018864vc118", "/", "zxgk.court.gov.cn"));
+
+            HttpClientHandler httpClientHandler = new HttpClientHandler();
+            httpClientHandler.CookieContainer = cookieContainer;
+
+            HttpClient httpClient = new HttpClient(httpClientHandler);
+
+            // 构造POST参数  
+            HttpContent postContent = new FormUrlEncodedContent(new Dictionary<string, string>()
+                {
+                   {"pName", personName},
+                   {"pCardNum", ""},
+                   {"pProvince", "0"},
+                   {"pCode", code},
+                   {"captchaId", captchaId},
+                });
+
+            // set headers
+            httpClient.DefaultRequestHeaders.ExpectContinue = false;
+            httpClient.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+            httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
+            httpClient.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9");
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36");
+            httpClient.DefaultRequestHeaders.Add("Host", "zxgk.court.gov.cn");
+            httpClient.DefaultRequestHeaders.Add("Origin", "http://zxgk.court.gov.cn");
+            httpClient.DefaultRequestHeaders.Add("Referer", "http://zxgk.court.gov.cn/shixin/index_form.do");
+            httpClient.DefaultRequestHeaders.Add("Upgrade-Insecure-Requests", "1");
+            httpClient.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
+            httpClient.DefaultRequestHeaders.Add("Pragma", "no-cache");
+            httpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
+
+            HttpResponseMessage response = await httpClient.PostAsync(queryUri, postContent);
+            // 确认响应成功，否则抛出异常  
+            response.EnsureSuccessStatusCode();
+
+            // 异步读取响应为字符串  
+            var htmlCode = "";
+            var content = await response.Content.ReadAsStringAsync();
+            var streamReceive = await response.Content.ReadAsStreamAsync();
+            using (var zipStream = new System.IO.Compression.GZipStream(streamReceive, System.IO.Compression.CompressionMode.Decompress))
+            {
+
+                using (StreamReader sr = new StreamReader(zipStream, Encoding.UTF8))
+                {
+                    htmlCode = sr.ReadToEnd();
+                }
+            }
+
+            Console.WriteLine(htmlCode);
+            Console.WriteLine("GetPersonInHttpClient......finished");
+        }
+
+        public void GetPersonInfo(HttpWebRequest req, string sessionId, string code)
+        {
+            sessionId = "17B6BE381A2614A88ABF88FC31D9AAAB";
+            var personName = "王猛";
+            var captchaId = "057d5f5759b844f1baa2673222f26053";
+            // var queryUri = "http://zxgk.court.gov.cn/shixin/findDis";
+            //  var req = HttpWebRequest.Create(queryUri) as HttpWebRequest;
+            req.ProtocolVersion = HttpVersion.Version11;
+            req.Method = "POST";
+            req.ContentType = "application/x-www-form-urlencoded";
+            req.ServicePoint.Expect100Continue = false;
+
+            var cookieContainer = new CookieContainer();
+            cookieContainer.Add(new Cookie("JSESSIONID", sessionId, "/shixin", "zxgk.court.gov.cn"));
+            cookieContainer.Add(new Cookie("_gscbrs_15322769", "1", "/", "zxgk.court.gov.cn"));
+            cookieContainer.Add(new Cookie("_gscs_15322769", "31443025o0yojy18|pv:4", "/", "zxgk.court.gov.cn"));
+            cookieContainer.Add(new Cookie("_gscu_15322769", "30843018864vc118", "/", "zxgk.court.gov.cn"));
+            req.CookieContainer = cookieContainer;
+
+            #region set headers
+            SetHeaderValue(req.Headers, "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+            SetHeaderValue(req.Headers, "Accept-Encoding", "gzip, deflate");
+            SetHeaderValue(req.Headers, "Accept-Language", "zh-CN,zh;q=0.9");
+            SetHeaderValue(req.Headers, "User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36");
+
+            SetHeaderValue(req.Headers, "Host", "zxgk.court.gov.cn");
+            SetHeaderValue(req.Headers, "Origin", "http://zxgk.court.gov.cn");
+            SetHeaderValue(req.Headers, "Referer", "http://zxgk.court.gov.cn/shixin/index_form.do");
+            SetHeaderValue(req.Headers, "Upgrade-Insecure-Requests", "1");
+
+            SetHeaderValue(req.Headers, "Cache-Control", "no-cache");
+            SetHeaderValue(req.Headers, "Pragma", "no-cache");
+            //SetHeaderValue(req.Headers, "Connection", "Keep-alive");
+            #endregion
+
+            IDictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters.Add("pName", personName);
+            parameters.Add("pCardNum", "");
+            parameters.Add("pProvince", "0");
+            parameters.Add("pCode", code);
+            parameters.Add("captchaId", captchaId);
+            StringBuilder buffer = new StringBuilder();
+            int i = 0;
+            foreach (string key in parameters.Keys)
+            {
+                if (i > 0)
+                {
+                    buffer.AppendFormat("&{0}={1}", key, parameters[key]);
+                }
+                else
+                {
+                    buffer.AppendFormat("{0}={1}", key, parameters[key]);
+                }
+                i++;
+            }
+            byte[] data = Encoding.UTF8.GetBytes(buffer.ToString());
+            req.ContentLength = data.Length;
+
+            Stream requestStream = req.GetRequestStream();
+            requestStream.Write(data, 0, data.Length);
+            requestStream.Close();
+
+            string htmlCode = string.Empty;
+
+            // 对response 进行解压读取
+            using (Stream streamReceive = req.GetResponse().GetResponseStream())
+            {
+                using (var zipStream = new System.IO.Compression.GZipStream(streamReceive, System.IO.Compression.CompressionMode.Decompress))
+                {
+
+                    using (StreamReader sr = new StreamReader(zipStream, Encoding.UTF8))
+                    {
+                        htmlCode = sr.ReadToEnd();
+                    }
+                }
+            }
+
+            Console.WriteLine(htmlCode);
+
+            var re = req.GetResponse();
+            Console.WriteLine("end......GetPersonInfo ");
         }
 
         #endregion
@@ -830,7 +1234,6 @@ namespace spiderDemo
             var host = "http://news.baidu.com/?tn=news";
         }
 
-        #endregion
 
         // 频率限制 每小时请求返回的上限
 
@@ -881,8 +1284,8 @@ namespace spiderDemo
                 collection[name] = value;
             }
         }
+        #endregion
     }
-
-
-
+    #endregion
 }
+

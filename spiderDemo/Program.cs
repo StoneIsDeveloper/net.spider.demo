@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace spiderDemo
 {
@@ -23,29 +24,64 @@ namespace spiderDemo
             PullData spider = new PullData();
 
             // 债券新闻
-            //spider.GetBondsNewsData("诉讼");
+            // spider.GetBondsNewsData("诉讼");
 
             // 上交所
-            // spider.GetNewsFromShangExchange("南京");
+            // spider.GetNewsFromShangExchangeTest("新奥股份*2018");
+           // spider.GetNewsFromShangExchange("新奥股份*2018");
 
             // 深交所
-            // spider.GetSZNewsByPost("监管关注");
+            //  spider.GetSZNewsByPostTest("监管关注");
+           // spider.GetSZNewsByPost("华联股份 高级管理人员辞职");
 
             // 证监会
-            spider.GetSecuritiesNewsByPost("中心");
+           // spider.GetSecuritiesNewsByPostTest("中心");
+             spider.GetSecuritiesNewsByPost("监管");
             // spider.ConvertToModelList("");
-           // spider.GetSecuritiesDetail();
+            // spider.GetSecuritiesDetail();
 
-            // 失信人信息查询
-            //spider.GetCourtPersonInfo();
+            // 失信人信息查询23
+
+            //var code = "";
+            var count = 0;
+            while (count< 0 )
+            {
+                var needPerson = true;
+                spider.ParseImgToCode(needPerson);
+                Thread.Sleep(500);
+                count++;
+            }
+
+
+            //Console.WriteLine("输入验证码:");
+            //var code = Console.ReadLine();
+            //Console.WriteLine("已输入:" + code);
+         //   spider.GetPersonInHttpClient("codeImgF50DF51363C61749730C6B4BE9AB96BE", "4jlx");
+
+            var queryUri = "http://zxgk.court.gov.cn/shixin/findDis";
+            var req = HttpWebRequest.Create(queryUri) as HttpWebRequest;
+            // spider.GetPersonInfo(req,"","1234");
 
             // 百度新闻
-
             //spider.TestRequest();
 
-            Console.ReadKey();
 
-        }      
+           // ParseImgCode parser = new ParseImgCode();
+          //  parser.Test();
+
+
+            Console.ReadKey();
+        }  
+        
+        public static bool TEST(PullData spider)
+        {
+            Console.WriteLine("输入验证码:");
+            Console.ReadLine();
+            var code = Console.ReadLine();
+          //  spider.GetCourtPersonInfo("", code);
+            return true;
+        }
+
 
     }
 

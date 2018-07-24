@@ -40,14 +40,20 @@ namespace spiderDemo
                     response.EnsureSuccessStatusCode();
 
                     var stream = response.Content.ReadAsStreamAsync();
-
-
                     // 异步读取响应为字符串  
                     response.Content.DownloadAsFileAsync(filePath, true).ContinueWith(
                         (readTask) => Console.WriteLine("文件下载完成！"));
                                  
 
                 });
+        }
+
+        public static string GetImgCode()
+        {
+            var code = string.Empty;
+
+
+            return code;
         }
     }
 }
