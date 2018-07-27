@@ -24,7 +24,7 @@ namespace spiderDemo
             PullData spider = new PullData();
 
             // 债券新闻
-            // spider.GetBondsNewsData("诉讼");
+             spider.GetBondsNewsData("银行 基金");
 
             // 上交所
             // spider.GetNewsFromShangExchangeTest("新奥股份*2018");
@@ -36,7 +36,7 @@ namespace spiderDemo
 
             // 证监会
            // spider.GetSecuritiesNewsByPostTest("中心");
-             spider.GetSecuritiesNewsByPost("监管");
+          //   spider.GetSecuritiesNewsByPost("监管");
             // spider.ConvertToModelList("");
             // spider.GetSecuritiesDetail();
 

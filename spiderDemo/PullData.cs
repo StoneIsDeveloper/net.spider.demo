@@ -47,28 +47,41 @@ namespace spiderDemo
             client.DefaultRequestHeaders.Add("user-agent", "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0)");
 
             var count = 0;
-            while (count < 501)
-            {
-                Thread.Sleep(100);
-                var task = client.GetAsync(client.BaseAddress);
-                task.Result.EnsureSuccessStatusCode();
-                HttpResponseMessage response = task.Result;
+            var task = client.GetAsync(client.BaseAddress);
+            task.Result.EnsureSuccessStatusCode();
+            HttpResponseMessage response = task.Result;
 
-                txtStatusCode = response.StatusCode + " " + response.ReasonPhrase + Environment.NewLine;
+            txtStatusCode = response.StatusCode + " " + response.ReasonPhrase + Environment.NewLine;
 
-                var result = response.Content.ReadAsStringAsync();
-                var txtMsg = result.Result.Replace("<br>", Environment.NewLine); // Insert new lines
+            var result = response.Content.ReadAsStringAsync();
+            var txtMsg = result.Result.Replace(",",",\r\n\r\n"); // Insert new lines
 
-                var filePath = @"D:\债券测试\TempRsult" + count + ".txt";
+            var filePath = @"D:\债券测试\TempRsult" + count + ".txt";
+            File.WriteAllText(filePath, txtMsg, Encoding.UTF8);
+            Console.WriteLine("save file finished...");
 
-                //  var data = ConverToNewsList(txtMsg);
-                //  var str = JsonConvert.SerializeObject(data);
-                // File.WriteAllText(filePath, str, Encoding.UTF8);
-                File.WriteAllText(filePath, "testing ", Encoding.UTF8);
+            //while (count < 501)
+            //{
+            //    Thread.Sleep(100);
+            //    var task = client.GetAsync(client.BaseAddress);
+            //    task.Result.EnsureSuccessStatusCode();
+            //    HttpResponseMessage response = task.Result;
 
-                Console.WriteLine(filePath + count + ".....");
-                count++;
-            }
+            //    txtStatusCode = response.StatusCode + " " + response.ReasonPhrase + Environment.NewLine;
+
+            //    var result = response.Content.ReadAsStringAsync();
+            //    var txtMsg = result.Result.Replace("<br>", Environment.NewLine); // Insert new lines
+
+            //    var filePath = @"D:\债券测试\TempRsult" + count + ".txt";
+
+            //    //  var data = ConverToNewsList(txtMsg);
+            //    //  var str = JsonConvert.SerializeObject(data);
+            //    // File.WriteAllText(filePath, str, Encoding.UTF8);
+            //    File.WriteAllText(filePath, "testing ", Encoding.UTF8);
+
+            //    Console.WriteLine(filePath + count + ".....");
+            //    count++;
+            //}
 
 
         }
